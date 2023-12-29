@@ -24,11 +24,11 @@ configured the image for SSH and network access with this. If you opt against
 setting up SSH access through the RPI Imager, you may want to enable it through
 the `raspi-config` menu.
 
-```txt
-3 Interface Options
-I2 VNC Enable/disable graphical remote desktop access
-Select <No>
-Select <Finish>
+```sh
+sudo raspi-config
+# 1 System Options > S5 Boot/Auto Login > B2 Console Autologin
+# 3 Interface Options > I2 VNC Enable/disable graphical remote desktop access
+# Reboot
 ```
 
 ## Installation
