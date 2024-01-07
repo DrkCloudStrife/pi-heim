@@ -75,19 +75,21 @@ sudo apt install git build-essential cmake -y
 sudo apt install gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf libncurses6:armhf -y
 sudo apt install libncurses6:armhf libpulse-dev:armhf libgles2-mesa-dev:armhf libatomic1:armhf libpulse0:armhf libpulse-mainloop-glib0:armhf -y
 # sudo apt install libegl-mesa0:armhf libgdm1:armhf libgl1-mesa-dri:armhf libglapi-mesa:armhf libgles2-mesa:armhf libglu1-mesa:armhf libglx-mesa0:armhf mesa-va-drivers:armhf mesa-vdpau-drivers:armhf mesa-vulkan-drivers:armhf libsdl1.2debian:armhf libudev1:armhf libsdl2-2.0-0:armhf -y
-sudo apt -t experimental install libsdl3-0
 ```
 
 ### Install experimental and unstable libraries
 
+>**NOTE:** These are not installed by the boothstrap script, these should only
+>be manually installed if your server is not working after setting it up.
+
 ```sh
 sudo vi /etc/apt/sources.list
-deb https://deb.debian.org/debian experimental main
+# deb https://deb.debian.org/debian experimental main
 deb https://deb.debian.org/debian testing main
 deb https://deb.debian.org/debian unstable main
 sudo apt update
+# sudo apt install -t experimental libsdl3-0:armhf libsdl3-dev:armhf -y
 sudo apt install -t testing libdecor-0-0:armhf libpulse-mainloop-glib0:armhf -y
-sudo apt install -t experimental libsdl3-dev:armhf -y
 sudo apt install -t testing libpulse-mainloop-glib0:armhf
 ```
 
