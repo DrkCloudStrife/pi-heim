@@ -10,6 +10,8 @@ yellow() { echo $'\e[1;33m'$1$'\e[0m'; }
 
 generage_pw() { echo $(date +%s%N) | sha256sum | head -c 8; }
 
+command_exists() { type "$1" &> /dev/null ; }
+
 # Config
 ########
 
@@ -48,17 +50,26 @@ sudo dpkg --add-architecture armhf
 sudo apt update
 sudo apt full-upgrade -y
 sudo apt install git build-essential cmake -y
-sudo apt install gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf -y
-sudo apt install libegl-mesa0:armhf libgdm1:armhf libgl1-mesa-dri:armhf libglapi-mesa:armhf libgles2-mesa:armhf libglu1-mesa:armhf libglx-mesa0:armhf mesa-va-drivers:armhf mesa-vdpau-drivers:armhf mesa-vulkan-drivers:armhf libsdl1.2debian:armhf libudev1:armhf libsdl2-2.0-0:armhf -y
+sudo apt install gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf libncurses6:armhf -y
+sudo apt install libncurses6:armhf libpulse-dev:armhf libgles2-mesa-dev:armhf libatomic1:armhf libpulse0:armhf libpulse-mainloop-glib0:armhf -y
 
 # Download Box64 & Box86 Libraries
 for box in box86 box64; do
+  if command_exists $box; then
+    yellow "$box is already installed, skipping..."
+    continue
+  fi
+
   export remote=https://github.com/ptitSeb/${box}
   export tag=$(git ls-remote --tags --exit-code --refs "$remote" \
     | sed -E 's/^[[:xdigit:]]+[[:space:]]+refs\/tags\/(.+)/\1/g' \
     | sort --version-sort | tail -n1)
-  magenta "Downloading $remote version $tag"
-  git clone --branch "$tag" "$remote" ~/${box}
+
+  magenta "Downloading $box version $tag..."
+  if [[ -d "~/${box}" ]]; then
+    rm -rf ~/${box}
+  fi
+  git clone --depth=1 --branch "$tag" "$remote" ~/${box}
   unset tag remote
 
   green "Installing ${box}"
@@ -66,31 +77,44 @@ for box in box86 box64; do
   cd ~/${box}
   mkdir build
   cd build
-  cmake .. -DRPI4ARM64=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  if [[ "${box}" == "box64" ]]; then
+    cmake .. -DRPI5ARM64=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  else
+    cmake .. -DRPI4ARM64=1 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  fi
   make -j$(nproc)
   sudo make install
   sudo systemctl restart systemd-binfmt
   cd ~/
-  rm -rf ~/${box}
 done
 
-magenta "Create Local Steam Account"
-
-sudo useradd -mU -s $(which bash) -p "${CLIENT_PASSWORD}" "${CLIENT_USERNAME}"
+if [[ id -u ${CLIENT_USERNAME} > /dev/null 2>&1 ]]; then
+  yellow "User already exists."
+else
+  magenta "Create Local Steam Account"
+  sudo useradd -mU -s $(which bash) -p "${CLIENT_PASSWORD}" "${CLIENT_USERNAME}"
+fi
 
 green "Login to steam account"
 
 sudo su - "${CLIENT_USERNAME}"
 
-green "Install SteamCMD"
+#green "Install SteamCMD"
 
-mkdir -p ~/steamcmd
-cd ~/steamcmd
-curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-./steamcmd.sh +@sSteamCmdForcePlatformType linux +login anonymous +quit
+#yellow "Hello world: ${SERVER_INSTALL_PATH}"
+#if [[ -d ~/steamcmd ]]; then
+#  yellow "SteamCMD is already installed, skipping..."
+#else
+#  mkdir -p ~/steamcmd
+#  cd ~/steamcmd
+#  curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+#  ./steamcmd.sh +@sSteamCmdForcePlatformType linux +login anonymous +quit
 
-magenta "Install Valheim Dedicated Server"
+#  magenta "Install Valheim Dedicated Server"
 
-./steamcmd.sh +@sSteamCmdForcePlatformType linux +login anonymous +force_install_dir ~/${SERVER_INSTALL_PATH} +app_update 896660 validate +quit
+#  ./steamcmd.sh +@sSteamCmdForcePlatformType linux +force_install_dir ~/${SERVER_INSTALL_PATH} +login anonymous +app_update 896660 validate +quit
+#  ./steamcmd.sh +@sSteamCmdForcePlatformType linux +force_install_dir ~/valheim_server +login anonymous +app_update 896660 validate +quit
 
-# Configure the server
+#  # Manually configure the server
+#fi
+#CMD
