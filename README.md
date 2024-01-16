@@ -32,15 +32,9 @@ sudo raspi-config
 ```
 
 ## Converting ps16k to ps4k Kernel
-
-Due to issues with [box86 ps16k][box86_libm_offset], we need to rebuild
-the kernel to be ps4k.
-
-Follow the instructions here: [RPI Kernel][rpi_kernel]
-
-Change `CONFIG_LOCALVERSION` from `-v8-16k` to `-v8-4k`
-
->**Note:** This will take some time
+If your current linux distro doesn't support ps4k out of the box, there's a link in
+the troubleshoot section on how to build your own kernel. However, I highly 
+recommend doing this route if you know you have dual kernels.
 
 ### Switching ps16k to ps4k
 
@@ -75,22 +69,6 @@ sudo apt install git build-essential cmake -y
 sudo apt install gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf libncurses6:armhf -y
 sudo apt install libncurses6:armhf libpulse-dev:armhf libgles2-mesa-dev:armhf libatomic1:armhf libpulse0:armhf libpulse-mainloop-glib0:armhf -y
 # sudo apt install libegl-mesa0:armhf libgdm1:armhf libgl1-mesa-dri:armhf libglapi-mesa:armhf libgles2-mesa:armhf libglu1-mesa:armhf libglx-mesa0:armhf mesa-va-drivers:armhf mesa-vdpau-drivers:armhf mesa-vulkan-drivers:armhf libsdl1.2debian:armhf libudev1:armhf libsdl2-2.0-0:armhf -y
-```
-
-### Install experimental and unstable libraries
-
->**NOTE:** These are not installed by the boothstrap script, these should only
->be manually installed if your server is not working after setting it up.
-
-```sh
-sudo vi /etc/apt/sources.list
-# deb https://deb.debian.org/debian experimental main
-deb https://deb.debian.org/debian testing main
-deb https://deb.debian.org/debian unstable main
-sudo apt update
-# sudo apt install -t experimental libsdl3-0:armhf libsdl3-dev:armhf -y
-sudo apt install -t testing libdecor-0-0:armhf libpulse-mainloop-glib0:armhf -y
-sudo apt install -t testing libpulse-mainloop-glib0:armhf
 ```
 
 ### Download box64 and box86
@@ -176,6 +154,31 @@ an older version or the latest `main` branch.
 Known Issues:
 
 * [https://github.com/ptitSeb/box86/issues/912][box86_libm_offset]
+
+### Rebuilding Kernel
+
+Follow the instructions here: [RPI Kernel][rpi_kernel]
+
+Change `CONFIG_LOCALVERSION` from `-v8-16k` to `-v8-4k`
+
+>**Note:** This will take some time
+
+### Install experimental and unstable libraries
+
+>**NOTE:** These are not installed by the boothstrap script, these should only
+>be manually installed if your server is not working after setting it up.
+
+```sh
+sudo vi /etc/apt/sources.list
+# deb https://deb.debian.org/debian experimental main
+deb https://deb.debian.org/debian testing main
+deb https://deb.debian.org/debian unstable main
+sudo apt update
+# sudo apt install -t experimental libsdl3-0:armhf libsdl3-dev:armhf -y
+sudo apt install -t testing libdecor-0-0:armhf libpulse-mainloop-glib0:armhf -y
+sudo apt install -t testing libpulse-mainloop-glib0:armhf
+```
+
 
 [rpi-imager]: https://www.raspberrypi.com/software/
 [box86_libm_offset]: https://github.com/ptitSeb/box86/issues/912
