@@ -48,6 +48,16 @@ I added a `bootstrap.sh` file for convenience, if you would prefer do run the
 process manually, follow the steps below. However, this bootstrap will do the
 exact same process.
 
+
+### Cloning the repo
+
+```sh
+git clone https://github.com/DrkCloudStrife/pi-heim.git
+cd ./pi-heim
+cp env.example .env
+export $(grep -v '^#' .env | xargs)
+```
+
 ### Configure environments
 
 Copy `env.example` to `.env`, then configure each argument to your desired
@@ -65,10 +75,11 @@ export $(grep -v '^#' .env | xargs)
 sudo dpkg --add-architecture armhf
 sudo apt update
 sudo apt full-upgrade -y
-sudo apt install git build-essential cmake -y
-sudo apt install gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf libncurses6:armhf -y
-sudo apt install libncurses6:armhf libpulse-dev:armhf libgles2-mesa-dev:armhf libatomic1:armhf libpulse0:armhf libpulse-mainloop-glib0:armhf -y
-# sudo apt install libegl-mesa0:armhf libgdm1:armhf libgl1-mesa-dri:armhf libglapi-mesa:armhf libgles2-mesa:armhf libglu1-mesa:armhf libglx-mesa0:armhf mesa-va-drivers:armhf mesa-vdpau-drivers:armhf mesa-vulkan-drivers:armhf libsdl1.2debian:armhf libudev1:armhf libsdl2-2.0-0:armhf -y
+sudo apt install -y tmux vim
+sudo apt install -y git build-essential cmake
+sudo apt install -y gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf libncurses6:armhf
+sudo apt install -y libncurses6:armhf libpulse-dev:armhf libgles2-mesa-dev:armhf libatomic1:armhf libpulse0:armhf libpulse-mainloop-glib0:armhf
+# sudo apt install -y libegl-mesa0:armhf libgdm1:armhf libgl1-mesa-dri:armhf libglapi-mesa:armhf libgles2-mesa:armhf libglu1-mesa:armhf libglx-mesa0:armhf mesa-va-drivers:armhf mesa-vdpau-drivers:armhf mesa-vulkan-drivers:armhf libsdl1.2debian:armhf libudev1:armhf libsdl2-2.0-0:armhf
 ```
 
 ### Download box64 and box86
@@ -92,11 +103,8 @@ cd ~/
 rm -rf ~/box86
 
 export remote=https://github.com/ptitSeb/box64
-export tag=$(git ls-remote --tags --exit-code --refs "$remote" \
-  | sed -E 's/^[[:xdigit:]]+[[:space:]]+refs\/tags\/(.+)/\1/g' \
-  | sort --version-sort | tail -n1)
-git clone --depth=1 --branch "$tag" "$remote" ~/box64
-unset tag remote
+git clone --depth=1 "$remote" ~/box64
+unset remote
 
 cd ~/box64
 mkdir build
