@@ -13,7 +13,7 @@ cp "${SERVER_INSTALL_PATH}/${SERVER_SCRIPT}" "${HOME}/"
 
 # Backup server data
 if [ -d "${SERVER_DATA_PATH}" ]; then
-  tar -zcf "${BACKUPS}/${SERVER_DATA_FOLDER}_$(date +%s).tar.gz" "${SERVER_DATA_PATH}"
+  tar -C "${SERVER_DATA_PATH}" -zcf "${BACKUPS}/${SERVER_DATA_FOLDER}_$(date +%s).tar.gz" ./
 fi
 
 # Update server files

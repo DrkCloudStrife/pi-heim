@@ -44,7 +44,7 @@ if [[ "$(getconf PAGESIZE)" -gt 4096 ]]; then
 fi
 
 # Ensure prerequisites are installed
-magenta "You will be asked for your password to update upgrade, and install 'apt' dependencies."
+magenta "You may be asked for your password to update upgrade, and install 'apt' dependencies."
 
 sudo dpkg --add-architecture armhf
 sudo apt update
@@ -96,7 +96,14 @@ for box in box86 box64; do
   cd $HOME
 done
 
-if [[ id -u ${CLIENT_USERNAME} > /dev/null 2>&1 ]]; then
+# Copy Server Scripts
+# ###################
+sudo cp ./server-scripts/box64.box64rc /etc/
+
+# Setup non-sudo User
+#####################
+
+if id -u ${CLIENT_USERNAME} > /dev/null 2>&1; then
   yellow "User already exists."
 else
   magenta "Create Local Steam Account"
@@ -106,9 +113,10 @@ fi
 yellow "Copying scripts to ${CLIENT_USERNAME}"
 
 if [ -f .env ]; then
-  cp .env "/home/${CLIENT_USERNAME}/"
+  sudo cp .env "/home/${CLIENT_USERNAME}/"
 fi
-cp ./user-scripts/* "/home/${CLIENT_USERNAME}/"
+sudo cp ./user-scripts/* "/home/${CLIENT_USERNAME}/"
+sudo chown -R ${CLIENT_USERNAME}:${CLIENT_USERNAME} "/home/${CLIENT_USERNAME}/"
 
 green "Login to steam account"
 

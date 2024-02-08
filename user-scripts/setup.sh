@@ -18,4 +18,4 @@ cd $HOME
 $HOME/update_server.sh
 
 # Start Valheim Server
-tmux new-session -d -s "${SERVER_NAME}" $HOME/start_server.sh
+# tmux new-session -d -s "${SERVER_NAME}" $HOME/start_server.sh
