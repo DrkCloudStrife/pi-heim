@@ -11,8 +11,8 @@ fi
 if [ -f "${HOME}/.env" ]; then
   # Adds script to load .env variables to .bashrc
   cat<<EOF >> "$HOME/.bashrc"
-if [ -f "${HOME}/.env" ]; then
-  export $(grep -v '^#' "${HOME}/.env" | xargs)
+if [ -f "\${HOME}/.env" ]; then
+  export \$(grep -v '^#' "\${HOME}/.env" | xargs)
 fi
 EOF
 

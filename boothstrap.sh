@@ -124,7 +124,7 @@ sudo chown -R ${CLIENT_USERNAME}:${CLIENT_USERNAME} "/home/${CLIENT_USERNAME}/"
 
 green "Login to steam account"
 
-sudo su -l "${CLIENT_USERNAME}" --session-command '$HOME/setup.sh'
+sudo su -s bash -l "${CLIENT_USERNAME}" --session-command '$HOME/setup.sh'
 
 #green "Install SteamCMD"
 
