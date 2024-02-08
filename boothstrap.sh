@@ -27,6 +27,7 @@ SERVER_PORT=${SERVER_PORT:-"2456"}
 SERVER_PUBLIC=${SERVER_PUBLIC:-"0"}
 SERVER_INSTALL_PATH=${SERVER_INSTALL_PATH:-"$HOME/valheim_server"}
 SERVER_DATA_PATH=${SERVER_DATA_PATH:-"$HOME/valheim_data"}
+WORK_DIR=$(pwd)
 
 # Validate
 ##########
@@ -93,12 +94,15 @@ for box in box86 box64; do
   make -j$(nproc)
   sudo make install
   sudo systemctl restart systemd-binfmt
-  cd $HOME
+  cd $WORK_DIR
 done
 
 # Copy Server Scripts
 # ###################
+green "Copying box64 config"
 sudo cp ./server-scripts/box64.box64rc /etc/
+
+# TODO: Add valheim.service
 
 # Setup non-sudo User
 #####################
