@@ -52,8 +52,9 @@ sudo apt update
 sudo apt full-upgrade -y
 sudo apt install -y tmux vim
 sudo apt install -y git build-essential cmake
-sudo apt install -y gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf libncurses6:armhf
+sudo apt install -y gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf
 sudo apt install -y libncurses6:armhf libpulse-dev:armhf libgles2-mesa-dev:armhf libatomic1:armhf libpulse0:armhf libpulse-mainloop-glib0:armhf
+# sudo apt install -y libncurses6 libpulse-dev libgles2-mesa-dev libatomic1 libpulse0 libpulse-mainloop-glib0
 
 # Download Box64 & Box86 Libraries
 for box in box86 box64; do
@@ -99,8 +100,16 @@ done
 
 # Copy Server Scripts
 # ###################
-green "Copying box64 config"
-sudo cp ./server-scripts/box64.box64rc /etc/
+green "Configuring box64.box64rc"
+if [ -f /etc/box64.box64rc ]; then
+  if grep -Fxq "[valheim_server.x86_64]" /etc/box64.box64rc; then
+    yellow "Already configured"
+  else
+    sudo bash -c 'cat ./server-scripts/box64.box64rc >> /etc/box64.box64rc'
+  fi
+else
+  sudo cp ./server-scripts/box64.box64rc /etc/
+fi
 
 # TODO: Add valheim.service
 

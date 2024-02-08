@@ -1,3 +1,4 @@
+# Configures valheim server
 [valheim_server.x86_64]
 BOX64_DYNAREC_BLEEDING_EDGE=0
 BOX64_DYNAREC_STRONGMEM=1
