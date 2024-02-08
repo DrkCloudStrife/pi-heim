@@ -3,6 +3,8 @@
 if [ -n "${SERVER_NAME}" ]; then
   # Assuming that if this is defined, this was already ran once before
   echo "\$SERVER_NAME is already configured, refusing to run"
+  echo "  To start the server, run `./start_server.sh`"
+  echo "  To start in tmux `tmux new-session -d -s "\${SERVER_NAME}" \$HOME/start_server.sh`"
   exit 0
 fi
 
@@ -33,4 +35,10 @@ cd $HOME
 $HOME/update_server.sh
 
 # Start Valheim Server
-# tmux new-session -d -s "${SERVER_NAME}" $HOME/start_server.sh
+echo "Do you want to start the server?"
+select yn in "Yes" "No"; do
+  case $yn in
+    Yes ) tmux new-session -d -s "${SERVER_NAME}" $HOME/start_server.sh; break;;
+    No ) exit;;
+  esac
+done
