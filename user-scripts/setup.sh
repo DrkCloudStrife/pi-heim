@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Assuming that if this is defined, this was already ran once before
-if grep -q "export.*xargs)" $HOME/.bashrc; then
+if grep -q "source.*export)" $HOME/.bashrc; then
   echo "Server is already configured, refusing to run"
   echo "  To start the server, run \`./start_server.sh\`"
   echo "  To start in tmux \`tmux new-session -d -s "\${SERVER_NAME}" \$HOME/start_server.sh\`"
@@ -12,12 +12,12 @@ if [ -f "${HOME}/.env" ]; then
   # Adds script to load .env variables to .bashrc
   cat<<EOF >> "$HOME/.bashrc"
 if [ -f "\${HOME}/.env" ]; then
-  export \$(grep -v '^#' "\${HOME}/.env" | xargs)
+  source <(sed -E -n 's/[^#]+/export &/p' \$HOME/.env)
 fi
 EOF
 
   # First time running will not have the env variables
-  export $(grep -v '^#' "${HOME}/.env" | xargs)
+  source <(sed -E -n 's/[^#]+/export &/p' $HOME/.env)
 fi
 
 # Fallback for if `.env` is not configured

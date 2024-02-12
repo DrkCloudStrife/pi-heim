@@ -16,7 +16,7 @@ command_exists() { type "$1" &> /dev/null ; }
 ########
 
 if [ -f .env ]; then
-  export $(grep -v '^#' .env | xargs)
+  source <(sed -E -n 's/[^#]+/export &/p' .env)
 fi
 
 CLIENT_USERNAME=${CLIENT_USERNAME:-"steam"}
