@@ -16,7 +16,7 @@ command_exists() { type "$1" &> /dev/null ; }
 ########
 
 if [ -f .env ]; then
-  export $(grep -v '^#' .env | xargs)
+  source <(sed -E -n 's/[^#]+/export &/p' .env)
 fi
 
 CLIENT_USERNAME=${CLIENT_USERNAME:-"steam"}
@@ -27,6 +27,7 @@ SERVER_PORT=${SERVER_PORT:-"2456"}
 SERVER_PUBLIC=${SERVER_PUBLIC:-"0"}
 SERVER_INSTALL_PATH=${SERVER_INSTALL_PATH:-"$HOME/valheim_server"}
 SERVER_DATA_PATH=${SERVER_DATA_PATH:-"$HOME/valheim_data"}
+WORK_DIR=$(pwd)
 
 # Validate
 ##########
@@ -44,14 +45,16 @@ if [[ "$(getconf PAGESIZE)" -gt 4096 ]]; then
 fi
 
 # Ensure prerequisites are installed
-magenta "You will be asked for your password to update upgrade, and install 'apt' dependencies."
+magenta "You may be asked for your password to update upgrade, and install 'apt' dependencies."
 
 sudo dpkg --add-architecture armhf
 sudo apt update
 sudo apt full-upgrade -y
-sudo apt install git build-essential cmake -y
-sudo apt install gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf libncurses6:armhf -y
-sudo apt install libncurses6:armhf libpulse-dev:armhf libgles2-mesa-dev:armhf libatomic1:armhf libpulse0:armhf libpulse-mainloop-glib0:armhf -y
+sudo apt install -y tmux vim
+sudo apt install -y git build-essential cmake
+sudo apt install -y gcc-arm-linux-gnueabihf libc6:armhf libstdc++6:armhf libncurses5:armhf
+sudo apt install -y libncurses6:armhf libpulse-dev:armhf libgles2-mesa-dev:armhf libatomic1:armhf libpulse0:armhf libpulse-mainloop-glib0:armhf
+# sudo apt install -y libncurses6 libpulse-dev libgles2-mesa-dev libatomic1 libpulse0 libpulse-mainloop-glib0
 
 # Download Box64 & Box86 Libraries
 for box in box86 box64; do
@@ -60,21 +63,28 @@ for box in box86 box64; do
     continue
   fi
 
-  export remote=https://github.com/ptitSeb/${box}
-  export tag=$(git ls-remote --tags --exit-code --refs "$remote" \
-    | sed -E 's/^[[:xdigit:]]+[[:space:]]+refs\/tags\/(.+)/\1/g' \
-    | sort --version-sort | tail -n1)
-
-  magenta "Downloading $box version $tag..."
-  if [[ -d "~/${box}" ]]; then
-    rm -rf ~/${box}
+  if [[ -d "${HOME}/${box}" ]]; then
+    rm -rf "${HOME}/${box}"
   fi
-  git clone --depth=1 --branch "$tag" "$remote" ~/${box}
+
+  magenta "Downloading $box..."
+  export remote=https://github.com/ptitSeb/${box}
+
+  if [[ "${box}" == "box64" ]]; then
+    git clone --depth=1 "$remote" "${HOME}/${box}"
+  else
+    export tag=$(git ls-remote --tags --exit-code --refs "$remote" \
+      | sed -E 's/^[[:xdigit:]]+[[:space:]]+refs\/tags\/(.+)/\1/g' \
+      | sort --version-sort | tail -n1)
+
+    git clone --depth=1 --branch "$tag" "$remote" "${HOME}/${box}"
+  fi
+
   unset tag remote
 
   green "Installing ${box}"
 
-  cd ~/${box}
+  cd "${HOME}/${box}"
   mkdir build
   cd build
   if [[ "${box}" == "box64" ]]; then
@@ -85,19 +95,45 @@ for box in box86 box64; do
   make -j$(nproc)
   sudo make install
   sudo systemctl restart systemd-binfmt
-  cd ~/
+  cd $WORK_DIR
 done
 
-if [[ id -u ${CLIENT_USERNAME} > /dev/null 2>&1 ]]; then
+# Copy Server Scripts
+# ###################
+green "Configuring box64.box64rc"
+if [ -f /etc/box64.box64rc ]; then
+  if grep -Fxq "[valheim_server.x86_64]" /etc/box64.box64rc; then
+    yellow "Already configured"
+  else
+    sudo bash -c 'cat ./server-scripts/box64.box64rc >> /etc/box64.box64rc'
+  fi
+else
+  sudo cp ./server-scripts/box64.box64rc /etc/
+fi
+
+# TODO: Add valheim.service
+
+# Setup non-sudo User
+#####################
+
+if id -u ${CLIENT_USERNAME} > /dev/null 2>&1; then
   yellow "User already exists."
 else
   magenta "Create Local Steam Account"
-  sudo useradd -mU -s $(which bash) -p "${CLIENT_PASSWORD}" "${CLIENT_USERNAME}"
+  sudo useradd -mU -s $(which bash) -p $CLIENT_PASSWORD "${CLIENT_USERNAME}"
 fi
+
+yellow "Copying scripts to ${CLIENT_USERNAME}"
+
+if [ -f .env ]; then
+  sudo cp .env "/home/${CLIENT_USERNAME}/"
+fi
+sudo cp ./user-scripts/* "/home/${CLIENT_USERNAME}/"
+sudo chown -R ${CLIENT_USERNAME}:${CLIENT_USERNAME} "/home/${CLIENT_USERNAME}/"
 
 green "Login to steam account"
 
-sudo su - "${CLIENT_USERNAME}"
+sudo su -l "${CLIENT_USERNAME}" --session-command '$HOME/setup.sh'
 
 #green "Install SteamCMD"
 
