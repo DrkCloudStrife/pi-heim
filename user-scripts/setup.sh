@@ -3,8 +3,7 @@
 # Assuming that if this is defined, this was already ran once before
 if grep -q "source.*export)" $HOME/.bashrc; then
   echo "Server is already configured, refusing to run"
-  echo "  To start the server, run \`./start_server.sh\`"
-  echo "  To start in tmux \`tmux new-session -d -s "\${SERVER_NAME}" \$HOME/start_server.sh\`"
+  echo "  To start the server, run \`systemctl --user start valheim\`"
   exit 0
 fi
 
@@ -38,7 +37,7 @@ $HOME/update_server.sh
 echo "Do you want to start the server?"
 select yn in "Yes" "No"; do
   case $yn in
-    Yes ) tmux new-session -d -s "${SERVER_NAME}" $HOME/start_server.sh; break;;
+    Yes ) XDG_RUNTIME_DIR="/run/user/$UID" DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus" systemctl --user start valheim; break;;
     No ) exit;;
   esac
 done

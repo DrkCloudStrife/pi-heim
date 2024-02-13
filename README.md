@@ -145,6 +145,8 @@ curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.g
 
 ## Configure The Server
 
+### Configuring The Valheim Dedicated Server Script
+
 ```sh
 cd ~/${SERVER_INSTALL_PATH}
 vi start_server.sh
@@ -152,6 +154,34 @@ vi start_server.sh
 # ./valheim_server.x86_64 -name "My server" -port 2456 -world "Dedicated" -password "secret" -crossplay
 # For more info read the provided PDF or look at https://valheim.fandom.com/wiki/Valheim_Dedicated_Server#Step_2:_Setting_up_a_Valheim_Dedicated_Server
 # To speficy a save directory for the worlds, use `-savedir /path/to/save-dir/`
+```
+
+Or copy the provided script from `user-scripts`
+
+```sh
+sudo cp ./user-scripts/* "/home/${CLIENT_USERNAME}/"
+sudo chown -R ${CLIENT_USERNAME}:${CLIENT_USERNAME} "/home/${CLIENT_USERNAME}/"
+```
+
+### Modifying box64
+
+Append the `valheim_server.x86_64` config
+
+```sh
+sudo bash -c 'cat ./server-scripts/box64.box64rc >> /etc/box64.box64rc'
+```
+
+### Using the valheim.service
+
+```sh
+# In ROOT/SSH user
+sudo mkdir -p /home/$CLIENT_USERNAME/.config/systemd/user
+sudo cp ./server-scripts/valheim.service /home/$CLIENT_USERNAME/.config/systemd/user/
+sudo chown -R ${CLIENT_USERNAME}:${CLIENT_USERNAME} "/home/${CLIENT_USERNAME}/"
+echo "$CLIENT_PASSWORD" | su -c 'XDG_RUNTIME_DIR="/run/user/$UID" DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus" systemctl --user daemon-reload' $CLIENT_USERNAME
+echo "$CLIENT_PASSWORD" | su -c 'XDG_RUNTIME_DIR="/run/user/$UID" DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus" systemctl --user enable valheim' $CLIENT_USERNAME
+echo "$CLIENT_PASSWORD" | su -c 'XDG_RUNTIME_DIR="/run/user/$UID" DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus" systemctl --user start valheim' $CLIENT_USERNAME
+echo "$CLIENT_PASSWORD" | su -c 'XDG_RUNTIME_DIR="/run/user/$UID" DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus" systemctl --user status' $CLIENT_USERNAME
 ```
 
 ## Troubleshooting

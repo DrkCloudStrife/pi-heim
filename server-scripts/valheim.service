@@ -1,0 +1,16 @@
+[Unit]
+Description=Valheim service
+Wants=network.target
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=10
+KillSignal=SIGINT
+Group=$CLIENT_USERNAME
+WorkingDirectory=/home/$CLIENT_USERNAME/
+ExecStart=/home/$CLIENT_USERNAME/start_server.sh
+
+[Install]
+WantedBy=multi-user.target 
