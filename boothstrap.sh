@@ -111,8 +111,6 @@ else
   sudo cp ./server-scripts/box64.box64rc /etc/
 fi
 
-# TODO: Add valheim.service
-
 # Setup non-sudo User
 #####################
 
@@ -121,6 +119,7 @@ if id -u ${CLIENT_USERNAME} > /dev/null 2>&1; then
 else
   magenta "Create Local Steam Account"
   sudo useradd -mU -s $(which bash) -p $CLIENT_PASSWORD "${CLIENT_USERNAME}"
+  echo -e "${CLIENT_PASSWORD}\n${CLIENT_PASSWORD}" | sudo passwd "${CLIENT_USERNAME}"
 fi
 
 yellow "Copying scripts to ${CLIENT_USERNAME}"
@@ -128,29 +127,20 @@ yellow "Copying scripts to ${CLIENT_USERNAME}"
 if [ -f .env ]; then
   sudo cp .env "/home/${CLIENT_USERNAME}/"
 fi
+
+# Copy user-scripts
 sudo cp ./user-scripts/* "/home/${CLIENT_USERNAME}/"
+
+# Copy valheim.service
+if [ ! -f "/home/$CLIENT_USERNAME/.config/systemd/user/valheim.service" ]; then
+  sudo mkdir -p /home/$CLIENT_USERNAME/.config/systemd/user/
+  sudo cp ./server-scripts/valheim.service /home/$CLIENT_USERNAME/.config/systemd/user/
+  echo "$CLIENT_PASSWORD" | su -c 'XDG_RUNTIME_DIR="/run/user/$UID" DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus" systemctl --user daemon-reload' $CLIENT_USERNAME
+  echo "$CLIENT_PASSWORD" | su -c 'XDG_RUNTIME_DIR="/run/user/$UID" DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus" systemctl --user enable valheim' $CLIENT_USERNAME
+fi
+
 sudo chown -R ${CLIENT_USERNAME}:${CLIENT_USERNAME} "/home/${CLIENT_USERNAME}/"
 
 green "Login to steam account"
 
 sudo su -l "${CLIENT_USERNAME}" --session-command '$HOME/setup.sh'
-
-#green "Install SteamCMD"
-
-#yellow "Hello world: ${SERVER_INSTALL_PATH}"
-#if [[ -d ~/steamcmd ]]; then
-#  yellow "SteamCMD is already installed, skipping..."
-#else
-#  mkdir -p ~/steamcmd
-#  cd ~/steamcmd
-#  curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-#  ./steamcmd.sh +@sSteamCmdForcePlatformType linux +login anonymous +quit
-
-#  magenta "Install Valheim Dedicated Server"
-
-#  ./steamcmd.sh +@sSteamCmdForcePlatformType linux +force_install_dir ~/${SERVER_INSTALL_PATH} +login anonymous +app_update 896660 validate +quit
-#  ./steamcmd.sh +@sSteamCmdForcePlatformType linux +force_install_dir ~/valheim_server +login anonymous +app_update 896660 validate +quit
-
-#  # Manually configure the server
-#fi
-#CMD
