@@ -1,15 +1,22 @@
 [Unit]
 Description=Valheim service
-Wants=network.target
 After=syslog.target network-online.target
+Wants=network.target systemd-networkd-wait-online.service
+
+StartLimitIntervalSec=500
+StartLimitBurst=5
 
 [Service]
+# Environment="BOX64_DYNAREC_BLEEDING_EDGE=0"
+# Environment="BOX64_DYNAREC_STRONGMEM=3"
+# Environment="BOX64_DYNAREC_BIGBLOCK=2"
 Type=simple
 Restart=on-failure
-RestartSec=10
-KillSignal=SIGINT
+RestartSec=10s
+# KillSignal=SIGINT
 Group=$CLIENT_USERNAME
 WorkingDirectory=/home/$CLIENT_USERNAME/
+# EnvironmentFile=/home/$CLIENT_USERNAME/.env
 ExecStart=/home/$CLIENT_USERNAME/start_server.sh
 
 [Install]
